@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Macro Calculator</title>
+<style>
+:root{--bg:#0a2a30;--card:#10393f;--text:#f4fbf8;--muted:#8fbdb8;--line:#1e5a60;--accent:#ff8a5b;--accent2:#ffd166;--p:#ff5d73;--c:#ffd166;--f:#4dd0e1;--shadow:0 20px 60px rgba(0,0,0,.35);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px;background-image:radial-gradient(circle at 15% 0,rgba(255,138,91,.16),transparent 45%),radial-gradient(circle at 90% 100%,rgba(77,208,225,.14),transparent 45%);background-attachment:fixed}
+.app{width:100%;max-width:520px}
+.brand{text-align:center;font-weight:800;letter-spacing:.3px;margin:8px 0 16px;font-size:1.1rem}
+.brand span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.progress{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:16px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;border-radius:9px}
+.card{background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:28px 24px;overflow:hidden;position:relative}
+.viewport{position:relative;min-height:340px}
+.slide{position:absolute;inset:0;opacity:0;transform:translateX(40px);pointer-events:none;transition:opacity .4s,transform .4s;visibility:hidden}
+.slide.active{position:relative;opacity:1;transform:none;pointer-events:auto;visibility:visible}
+.slide.left{transform:translateX(-40px)}
+h2{margin:0 0 20px;font-size:1.5rem}
+h2+.sub{margin-top:-14px}
+.sub{color:var(--muted);margin:0 0 22px;font-size:.95rem}
+.emoji{font-size:2.6rem;margin-bottom:8px}
+.opts{display:grid;gap:10px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opt{border:2px solid var(--line);background:transparent;color:var(--text);border-radius:16px;padding:14px 16px;text-align:left;cursor:pointer;font:inherit;transition:.2s}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:rgba(255,138,91,.15)}
+.opt b{display:block}.opt small{color:var(--muted)}
+.opts.two .opt{text-align:center;padding:22px 10px;font-size:1.05rem}
+.field{display:flex;align-items:center;border:2px solid var(--line);border-radius:16px;padding:6px 16px;transition:.2s;margin-bottom:14px}
+.field:hover,.field:focus-within{border-color:var(--accent)}
+.field input{flex:1;border:0;background:transparent;color:var(--text);font:inherit;font-size:1.6rem;font-weight:700;padding:8px 0;outline:0;width:100%;min-width:0}
+.field label{color:var(--muted);font-weight:600}
+.field input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+button.btn{border:0;border-radius:14px;padding:14px 22px;font:inherit;font-weight:700;cursor:pointer;transition:.2s}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#2b1406;flex:1;box-shadow:0 8px 20px rgba(255,138,91,.3)}
+.btn.primary:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--muted);border:2px solid var(--line)}
+.err{color:#e55;font-size:.85rem;min-height:1.2em;margin-top:6px}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:16px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:11px;font:inherit;font-weight:700;cursor:pointer;transition:.2s}
+.seg button.on{background:var(--card);color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.row{display:flex;gap:12px}.row .field{flex:1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:9px;background:var(--line);outline:0;margin:14px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);border:4px solid var(--card);box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:4px solid var(--card);cursor:pointer}
+.big{font-size:3rem;font-weight:800;text-align:center;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.chip{border:2px solid var(--line);background:transparent;color:var(--text);padding:6px 14px;border-radius:99px;cursor:pointer;font:inherit;font-size:.9rem}
+.chip:hover{border-color:var(--accent)}
+/* results */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--bg);border-radius:16px;padding:12px 8px;text-align:center}
+.stat small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+.stat b{font-size:1.15rem}
+.donutwrap{position:relative;width:200px;height:200px;margin:0 auto 18px}
+.donutwrap svg{transform:rotate(-90deg)}
+.donutwrap circle{fill:none;stroke-width:22;transition:stroke-dasharray .35s,stroke-dashoffset .35s}
+.mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mid b{font-size:1.9rem}.mid small{color:var(--muted)}
+.macros{display:grid;gap:10px}
+.m{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:16px;padding:12px 14px}
+.dot{width:12px;height:36px;border-radius:6px}
+.m .n{flex:1}.m .n small{display:block;color:var(--muted)}
+.m .g{font-size:1.4rem;font-weight:800;text-align:right}.m .g small{display:block;font-size:.8rem;font-weight:600;color:var(--muted)}
+.slidebox{margin-top:20px;border:2px dashed var(--line);border-radius:18px;padding:14px 16px}
+.slidebox .top{display:flex;justify-content:space-between;font-weight:700}
+.slidebox .top span:last-child{color:var(--accent)}
+.rng{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem}
+.warn{color:#e08a00;font-size:.85rem;margin-top:8px;display:none}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="brand">🔥 <span>Macro Calculator</span></div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="card">
+    <div class="viewport" id="vp">
+
+      <section class="slide">
+        <div class="emoji">👋</div><h2>Let's get started</h2>
+        <p class="sub">Answer a few quick questions and we'll calculate your calories and macros using the Mifflin-St Jeor equation.</p>
+        <p class="sub">First, what's your biological sex?</p>
+        <div class="opts two" data-key="sex">
+          <button class="opt" data-v="male">♂ Male</button>
+          <button class="opt" data-v="female">♀ Female</button>
+        </div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">🎂</div><h2>How old are you?</h2>
+        <div class="field"><input type="number" id="age" inputmode="numeric" min="15" max="100" placeholder="25"><label>years</label></div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">📏</div><h2>How tall are you?</h2>
+        <div class="seg" data-k="h"><button class="on" data-u="cm">cm</button><button data-u="ft">ft + in</button></div>
+        <div id="hCm"><div class="field"><input type="number" id="height" inputmode="decimal" placeholder="175"><label>cm</label></div></div>
+        <div id="hFt" class="row" style="display:none"><div class="field"><input type="number" id="ft" inputmode="numeric" placeholder="5"><label>ft</label></div><div class="field"><input type="number" id="inch" inputmode="decimal" placeholder="9"><label>in</label></div></div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">⚖️</div><h2>What's your weight?</h2>
+        <div class="seg" data-k="w"><button class="on" data-u="kg">kg</button><button data-u="lb">lbs</button></div>
+        <div class="field"><input type="number" id="weight" inputmode="decimal" placeholder="70"><label id="wLab">kg</label></div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">🏃</div><h2>How active are you?</h2>
+        <div class="opts" data-key="act">
+          <button class="opt" data-v="1.2"><b>Sedentary</b><small>Little or no exercise, mostly sitting (e.g. a desk job)</small></button>
+          <button class="opt" data-v="1.375"><b>Lightly active</b><small>Light exercise 1–3 days per week</small></button>
+          <button class="opt" data-v="1.55"><b>Moderately active</b><small>Moderate exercise 3–5 days per week</small></button>
+          <button class="opt" data-v="1.725"><b>Very active</b><small>Hard exercise 6–7 days per week</small></button>
+          <button class="opt" data-v="1.9"><b>Extremely active</b><small>Very hard daily exercise or a physical job, or training twice a day</small></button>
+        </div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">🎯</div><h2>What's your goal?</h2>
+        <div class="opts two" data-key="goal">
+          <button class="opt" data-v="deficit">📉 Deficit<br><small>Lose fat</small></button>
+          <button class="opt" data-v="surplus">📈 Surplus<br><small>Gain muscle</small></button>
+        </div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide">
+        <div class="emoji">⚖️</div><h2 id="pctTitle">How big a deficit?</h2>
+        <div class="big"><span id="pctVal">15</span>%</div>
+        <input type="range" id="pct" min="0" max="30" value="15">
+        <div class="chips" id="chips"></div>
+        <div class="err"></div>
+      </section>
+
+      <section class="slide" id="results">
+        <h2 style="text-align:center">Your plan 🎉</h2>
+        <p class="sub" style="text-align:center" id="goalLine"></p>
+        <div class="stats">
+          <div class="stat"><small>BMR</small><b id="sBmr"></b></div>
+          <div class="stat"><small>TDEE</small><b id="sTdee"></b></div>
+          <div class="stat"><small>Target</small><b id="sTarget"></b></div>
+        </div>
+        <div class="donutwrap">
+          <svg viewBox="0 0 200 200" width="200" height="200">
+            <circle cx="100" cy="100" r="80" stroke="var(--line)"/>
+            <circle id="dc" cx="100" cy="100" r="80" stroke="var(--c)"/>
+            <circle id="df" cx="100" cy="100" r="80" stroke="var(--f)"/>
+            <circle id="dp" cx="100" cy="100" r="80" stroke="var(--p)"/>
+          </svg>
+          <div class="mid"><b id="midCal"></b><small>kcal / day</small></div>
+        </div>
+        <div class="macros">
+          <div class="m"><div class="dot" style="background:var(--p)"></div><div class="n"><b>Protein</b><small id="pPct"></small></div><div class="g"><span id="pG"></span><small id="pK"></small></div></div>
+          <div class="m"><div class="dot" style="background:var(--c)"></div><div class="n"><b>Carbs</b><small id="cPct"></small></div><div class="g"><span id="cG"></span><small id="cK"></small></div></div>
+          <div class="m"><div class="dot" style="background:var(--f)"></div><div class="n"><b>Fat</b><small id="fPct"></small></div><div class="g"><span id="fG"></span><small id="fK"></small></div></div>
+        </div>
+        <div class="slidebox">
+          <div class="top"><span>Protein Intake</span><span id="ppk"></span></div>
+          <input type="range" id="prot" min="1.6" max="2.2" step="0.05" value="1.8">
+          <div class="rng"><span id="rMin">1.6 g/kg</span><span id="rMax">2.2 g/kg</span></div>
+          <div class="warn" id="warn">Protein + fat exceed your calories at this level, so carbs are set to 0.</div>
+        </div>
+      </section>
+    </div>
+    <div class="nav" id="nav">
+      <button class="btn ghost" id="back">Back</button>
+      <button class="btn primary" id="next">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const slides=[...document.querySelectorAll('.slide')];
+const S={sex:null,act:null,goal:null};
+let cur=0,out=null;
+
+function show(i,dir=1){
+  slides.forEach((s,k)=>{
+    s.classList.toggle('active',k===i);
+    s.classList.toggle('left',k<i);
+  });
+  cur=i;
+  $('bar').style.width=((i)/(slides.length-1)*100)+'%';
+  $('back').style.display=i===0?'none':'';
+  $('next').textContent=i===slides.length-2?'Calculate ✨':i===slides.length-1?'Start over':'Continue';
+  $('back').textContent=i===slides.length-1?'Back':'Back';
+}
+function err(msg){slides[cur].querySelector('.err').textContent=msg||''}
+
+// option buttons
+document.querySelectorAll('.opts').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const b=e.target.closest('.opt');if(!b)return;
+    g.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    b.classList.add('sel');
+    S[g.dataset.key]=b.dataset.v;err('');
+    if(g.dataset.key==='goal')setupPct();
+  });
+});
+
+function setupPct(){
+  const d=S.goal==='deficit';
+  $('pctTitle').textContent=d?'How big a deficit?':'How big a surplus?';
+  const p=$('pct');p.value=d?15:10;$('pctVal').textContent=p.value;
+  $('chips').innerHTML=[5,10,15,20,25,30].map(v=>`<button class="chip" data-v="${v}">${v}%</button>`).join('');
+}
+$('chips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  $('pct').value=c.dataset.v;$('pctVal').textContent=c.dataset.v;
+});
+$('pct').addEventListener('input',e=>$('pctVal').textContent=e.target.value);
+
+const U={h:'cm',w:'kg'};
+function getH(){
+  if(U.h==='cm')return parseFloat($('height').value);
+  const f=parseFloat($('ft').value),i=parseFloat($('inch').value||0);
+  return isNaN(f)||isNaN(i)?NaN:(f*12+i)*2.54;
+}
+function getW(){const v=parseFloat($('weight').value);return U.w==='kg'?v:v*0.45359237}
+document.querySelectorAll('.seg[data-k]').forEach(sg=>sg.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const k=sg.dataset.k,u=b.dataset.u;if(U[k]===u)return;
+  sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  const cm=getH(),kg=getW();
+  U[k]=u;err('');
+  if(k==='h'){
+    $('hCm').style.display=u==='cm'?'':'none';$('hFt').style.display=u==='ft'?'':'none';
+    if(!isNaN(cm)){
+      if(u==='cm')$('height').value=Math.round(cm);
+      else{const t=Math.round(cm/2.54);$('ft').value=Math.floor(t/12);$('inch').value=t%12}
+    }
+  }else{
+    $('wLab').textContent=u;
+    if(!isNaN(kg))$('weight').value=u==='kg'?Math.round(kg*10)/10:Math.round(kg/0.45359237*10)/10;
+  }
+}));
+function validate(){
+  const num=id=>parseFloat($(id).value);
+  switch(cur){
+    case 0:if(!S.sex)return'Please choose an option.';break;
+    case 1:{const a=num('age');if(!(a>=15&&a<=100))return'Enter an age between 15 and 100.';S.age=a;break}
+    case 2:{const h=getH();
+      if(!(h>=120&&h<=230))return'Height should be between 120–230 cm (3 ft 11 in – 7 ft 6 in).';
+      S.h=h;break}
+    case 3:{const w=getW();
+      if(!(w>=30&&w<=300))return'Weight should be between 30–300 kg (66–661 lbs).';
+      S.w=w;break}
+    case 4:if(!S.act)return'Please choose your activity level.';break;
+    case 5:if(!S.goal)return'Please choose a goal.';break;
+    case 6:S.pct=+$('pct').value;break;
+  }
+  return '';
+}
+
+function compute(){
+  const bmr=10*S.w+6.25*S.h-5*S.age+(S.sex==='male'?5:-161);
+  const tdee=bmr*parseFloat(S.act);
+  const sign=S.goal==='deficit'?-1:1;
+  const target=Math.round(tdee*(1+sign*S.pct/100));
+  out={bmr:Math.round(bmr),tdee:Math.round(tdee),target};
+  $('sBmr').textContent=out.bmr;$('sTdee').textContent=out.tdee;$('sTarget').textContent=out.target;
+  $('midCal').textContent=out.target.toLocaleString();
+  $('goalLine').textContent=`${S.pct}% ${S.goal} → ${Math.abs(out.target-out.tdee)} kcal ${S.goal==='deficit'?'below':'above'} maintenance`;
+  resetProt();setPU(U.w);
+}
+
+const C=2*Math.PI*80;
+function arc(el,start,frac){
+  el.style.strokeDasharray=`${Math.max(frac*C-1,0)} ${C}`;
+  el.style.strokeDashoffset=-start*C;
+}
+function render(){
+  const raw=parseFloat($('prot').value);
+  const perKg=pu==='kg'?raw:raw*2.20462;
+  const cal=out.target;
+  const fatK=cal*0.20, fatG=fatK/9;
+  let protG=perKg*S.w, protK=protG*4;
+  let carbK=cal-protK-fatK, warn=false;
+  if(carbK<0){carbK=0;warn=true}
+  const carbG=carbK/4;
+  const tot=protK+carbK+fatK;
+  const pp=protK/tot*100, cp=carbK/tot*100, fp=fatK/tot*100;
+  $('ppk').textContent=`${raw.toFixed(2)} g/${pu}`;
+  $('pG').textContent=Math.round(protG)+' g';$('pK').textContent=Math.round(protK)+' kcal';
+  $('cG').textContent=Math.round(carbG)+' g';$('cK').textContent=Math.round(carbK)+' kcal';
+  $('fG').textContent=Math.round(fatG)+' g';$('fK').textContent=Math.round(fatK)+' kcal';
+  $('pPct').textContent=pp.toFixed(1)+'% of calories';
+  $('cPct').textContent=cp.toFixed(1)+'% of calories';
+  $('fPct').textContent=fp.toFixed(1)+'% of calories';
+  arc($('dp'),0,pp/100);arc($('dc'),pp/100,cp/100);arc($('df'),(pp+cp)/100,fp/100);
+  $('warn').style.display=warn?'block':'none';
+}
+let pu='kg';
+function resetProt(){pu='kg';const el=$('prot');el.min=1.6;el.max=2.2;el.step=0.05;el.value=1.8}
+function setPU(u){
+  const el=$('prot'),v=parseFloat(el.value);
+  const kgv=pu==='kg'?v:v*2.20462;
+  pu=u;
+  if(u==='kg'){el.min=1.6;el.max=2.2;el.step=0.05;el.value=Math.min(2.2,Math.max(1.6,kgv))}
+  else{el.min=0.7;el.max=1;el.step=0.01;el.value=Math.min(1,Math.max(0.7,kgv/2.20462))}
+  $('rMin').textContent=u==='kg'?'1.6 g/kg':'0.7 g/lb';
+  $('rMax').textContent=u==='kg'?'2.2 g/kg':'1.0 g/lb';
+  render();
+}
+$('prot').addEventListener('input',render);
+
+function next(){
+  if(cur===slides.length-1){
+    ['age','height','ft','inch','weight'].forEach(id=>$(id).value='');
+    S.sex=S.act=S.goal=null;
+    document.querySelectorAll('.opt.sel').forEach(o=>o.classList.remove('sel'));
+    resetProt();show(0);return;
+  }
+  const m=validate();
+  if(m){err(m);return}
+  err('');
+  if(cur===slides.length-2)compute();
+  show(cur+1);
+}
+$('next').onclick=next;
+$('back').onclick=()=>cur>0&&show(cur-1,-1);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&cur<slides.length-1)next()});
+
+setupPct();show(0);
+</script>
+</body>
+</html>
