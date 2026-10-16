@@ -21,8 +21,8 @@ This app walks you through a few quick steps and gives you a full daily plan, wi
 ---
 
 ## 🚀 Live Demo
-
-🔗 Try it here: `https://just-asim27.github.io/macro-calculator/`
+ 
+🔗 Try it here: [https://just-asim27.github.io/macro-calculator/](https://just-asim27.github.io/macro-calculator/)
 
 ---
 
